@@ -62,9 +62,9 @@ usage()
 
 create()
 {
-	if [ ! -f "$WIKI_PATH" ]; then
-		mkdir $WIKI_PATH
-        cd $WIKI_PATH
+	if [ ! -f "${WIKI_PATH}" ]; then
+		mkdir ${WIKI_PATH}
+        cd ${WIKI_PATH}
         git init
 		return 0
 	else
@@ -75,15 +75,15 @@ create()
 
 list()
 {
-    find $WIKI_PATH -name '*.md' \
-        | sed -e "s:$WIKI_PATH::" \
+    find ${WIKI_PATH} -name '*.md' \
+        | sed -e "s:${WIKI_PATH}::" \
         | cut -d\. -f1 \
         | sort
 }
 
 view()
 {
-	FILE="$WIKI_PATH$1.md"
+	FILE="${WIKI_PATH}$1.md"
     if type w3m >/dev/null 2>&1; then
         md2html.awk $FILE | w3m -T text/html
     else
@@ -101,7 +101,7 @@ edit()
 	ID=`echo $1 | sed 's:.*/::' | cut -d\. -f1`
 
 	# Set file path
-	FILE="$WIKI_PATH$1.md"
+	FILE="${WIKI_PATH}$1.md"
 
 	if [ -f "$FILE" ]; then
 		MD5=`md5sum "$FILE"`
@@ -111,7 +111,7 @@ edit()
 		MD5_bis=`md5sum "$FILE"`
 	
         if [ "$MD5" != "$MD5_bis" ]; then
-            cd $WIKI_PATH
+            cd ${WIKI_PATH}
             git add "$FILE"
             if $WIKI_AUTO_COMMIT_MASSAGE; then
                 git commit -m"File $ID changed."
@@ -132,16 +132,16 @@ edit()
 add()
 {	
 	# Set file path
-	FILE="$WIKI_PATH$1.md"
+	FILE="${WIKI_PATH}$1.md"
 	while [ -f "$FILE" ]; do
-		FILE="$WIKI_PATH$1.md"
+		FILE="${WIKI_PATH}$1.md"
 	done
 	
 	ID=`echo $1 | sed 's:.*/::' | cut -d\. -f1`
     CATEGORY=`echo $1 | sed -e "s/\/[^\/]*$//"`
     if [ ! -f "$CATEGORY" ]; then
         echo "Creating category for file: $CATEGORY"
-        mkdir -p $WIKI_PATH$CATEGORY
+        mkdir -p ${WIKI_PATH}$CATEGORY
     fi
 
 	cat > "$FILE" << TEMPLATE
@@ -156,7 +156,7 @@ TEMPLATE
 	MD5_bis=`md5sum "$FILE"`
 	
 	if [ "$MD5" != "$MD5_bis" ]; then
-        cd $WIKI_PATH
+        cd ${WIKI_PATH}
 		git add "$FILE"
         if $WIKI_AUTO_COMMIT_MASSAGE; then
             git commit -m"File $ID added."
@@ -176,10 +176,10 @@ delete()
 	ID=`echo $1 | sed 's:.*/::' | cut -d\. -f1`
 
 	# Set file path
-	FILE="$WIKI_PATH$1.md"
+	FILE="${WIKI_PATH}$1.md"
 
 	if [ -f "$FILE" ]; then
-            cd $WIKI_PATH
+            cd ${WIKI_PATH}
             git rm "$FILE"
             if $WIKI_AUTO_COMMIT_MASSAGE; then
                 git commit -m"File $ID deleted."
@@ -194,11 +194,11 @@ delete()
 	fi
 }
 
-if [ ! -d "$WIKI_PATH" ]; then
+if [ ! -d "${WIKI_PATH}" ]; then
     echo "Please set proper WIKI_PATH first!"
 fi
 
-if [ ! -d "$WIKI_PATH/.git" ]; then
+if [ ! -d "${WIKI_PATH}/.git" ]; then
     if [ ! "$CMD" = "create" ]; then
         echo "Please run gwiki create first!"
     fi
