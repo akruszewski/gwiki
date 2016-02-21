@@ -3,7 +3,7 @@
 ## REQUIREMENTS
 
 - git
-- optional: w3m for viewer, otherwise use
+- optional: w3m for viewer, otherwise use cat; md2html.awk (https://bitbucket.org/yiyus/md2html.awk)
 
 ## SETUP
 

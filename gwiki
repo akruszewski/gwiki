@@ -31,7 +31,8 @@
 #
 # REQUIREMENTS:
 # - git
-# - optional: w3m for viewer, otherwise use
+# - optional: w3m for viewer, otherwise use cat; md2html
+#   (https://bitbucket.org/yiyus/md2html.awk)
 #
 # USAGE:
 # 1. set WIKI_PATH environment variable to path where your wiki files will be 
