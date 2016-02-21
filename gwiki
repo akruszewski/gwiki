@@ -42,7 +42,6 @@
 #    first (git remote add origin adress_to_your_repo) and set WIKI_AUTO_PUSH
 #    environment variable to true
 
-WIKI_PATH=""
 WIKI_PUBLISH_COMMAND=""
 WIKI_AUTO_COMMIT_MASSAGE=true
 WIKI_AUTO_PUSH=false
@@ -193,6 +192,16 @@ delete()
 		echo "File $FILE not found."
 	fi
 }
+
+if [ ! -d "$WIKI_PATH" ]; then
+    echo "Please set proper WIKI_PATH first!"
+fi
+
+if [ ! -d "$WIKI_PATH/.git" ]; then
+    if [ ! "$CMD" = "create" ]; then
+        echo "Please run gwiki create first!"
+    fi
+fi
 
 if [ -z "$CMD" ]; then
 	usage
