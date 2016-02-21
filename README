@@ -1,0 +1,32 @@
+# gwiki 0.1 - Simple git based wiki script.
+
+## REQUIREMENTS
+
+- git
+- optional: w3m for viewer, otherwise use
+
+## SETUP
+
+1. set WIKI_PATH environment variable to path where your wiki files will be 
+   stored
+2. if you want to write custom commit messages set WIKI_AUTO_COMMIT_MESSAGE
+   environment variable to false
+3. if you want automaticaly push your changes to remote repository set it
+   first (go to your `WIKI_PATH` directory and run command:
+   `git remote add origin adress_to_your_repo`) and set WIKI_AUTO_PUSH
+   environment variable to true
+4. run `gwiki create`
+
+## USAGE
+
+- to add new page run: `gwiki add CATEGORY/SUBCATEGORY/ARTICLE_NAME` where
+  ARTICLE_NAME - required, name of article (not it title)
+  CATEGORY and SUBCATEGORY are optional and self-explained
+- to edit page run: `gwiki edit CATEGORY/SUBCATEGORY/ARTICLE_NAME`
+- to delete page run: `gwiki delete CATEGORY/SUBCATEGORY/ARTICLE_NAME`
+- to view page run: `gwiki view CATEGORY/SUBCATEGORY/ARTICLE_NAME`
+- to list new page run: `gwiki list CATEGORY/SUBCATEGORY/ARTICLE_NAME`
+
+### EXAMPLES
+
+TBD if needed.

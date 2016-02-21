@@ -1,0 +1,236 @@
+#!/bin/sh
+# (encoding: UTF-8)
+#
+# gwiki 0.1 - Simple git based wiki script.
+#  (Instructions below the license)
+#
+# LICENSE
+#
+# The MIT License (MIT)
+# 
+# Copyright (c) 2014 Adrian Piotr Kruszewski
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+# 
+#
+# REQUIREMENTS:
+# - git
+# - optional: w3m for viewer, otherwise use
+#
+# USAGE:
+# 1. set WIKI_PATH environment variable to path where your wiki files will be 
+# stored
+# 2. if you want to write custom commit messages set WIKI_AUTO_COMMIT_MESSAGE
+#    environment variable to false
+# 3. if you want automaticaly push your changes to remote repository set it
+#    first (git remote add origin adress_to_your_repo) and set WIKI_AUTO_PUSH
+#    environment variable to true
+
+WIKI_PATH=""
+WIKI_PUBLISH_COMMAND=""
+WIKI_AUTO_COMMIT_MASSAGE=true
+WIKI_AUTO_PUSH=false
+
+
+APPNAME=`basename "$0"`
+CMD="$1"
+
+if [ -z "$EDITOR" ]; then
+	EDITOR=vim
+fi
+
+usage()
+{
+	echo "Usage: $APPNAME [add | list | view | edit | delete | create | version]"
+}
+
+create()
+{
+	if [ ! -f "$WIKI_PATH" ]; then
+		mkdir $WIKI_PATH
+        cd $WIKI_PATH
+        git init
+		return 0
+	else
+		echo "The project exists. Please remove the folder before create." 2>&1
+		return 1
+	fi
+}
+
+list()
+{
+    find $WIKI_PATH -name '*.md' \
+        | sed -e "s:$WIKI_PATH::" \
+        | cut -d\. -f1 \
+        | sort
+}
+
+view()
+{
+	FILE="$WIKI_PATH$1.md"
+    if type w3m >/dev/null 2>&1; then
+        md2html.awk $FILE | w3m -T text/html
+    else
+        cat $FILE
+    fi
+}
+
+version()
+{
+	echo "gwiki 0.1 - Simple git powered wiki for the command line."
+}
+
+edit()
+{
+	ID=`echo $1 | sed 's:.*/::' | cut -d\. -f1`
+
+	# Set file path
+	FILE="$WIKI_PATH$1.md"
+
+	if [ -f "$FILE" ]; then
+		MD5=`md5sum "$FILE"`
+
+		"$EDITOR" "$FILE"
+
+		MD5_bis=`md5sum "$FILE"`
+	
+        if [ "$MD5" != "$MD5_bis" ]; then
+            cd $WIKI_PATH
+            git add "$FILE"
+            if $WIKI_AUTO_COMMIT_MASSAGE; then
+                git commit -m"File $ID changed."
+            else
+                git commit
+            fi
+            if $WIKI_AUTO_PUSH; then
+                git push
+            fi
+        else
+            echo "File not changed. Page is not added"
+        fi
+	else
+		echo "File $FILE not found."
+	fi
+}
+
+add()
+{	
+	# Set file path
+	FILE="$WIKI_PATH$1.md"
+	while [ -f "$FILE" ]; do
+		FILE="$WIKI_PATH$1.md"
+	done
+	
+	ID=`echo $1 | sed 's:.*/::' | cut -d\. -f1`
+    CATEGORY=`echo $1 | sed -e "s/\/[^\/]*$//"`
+    if [ ! -f "$CATEGORY" ]; then
+        echo "Creating category for file: $CATEGORY"
+        mkdir -p $WIKI_PATH$CATEGORY
+    fi
+
+	cat > "$FILE" << TEMPLATE
+# PAGE TITLE
+[tags]: ()
+
+TEMPLATE
+	MD5=`md5sum "$FILE"`
+
+	"$EDITOR" "$FILE"
+
+	MD5_bis=`md5sum "$FILE"`
+	
+	if [ "$MD5" != "$MD5_bis" ]; then
+        cd $WIKI_PATH
+		git add "$FILE"
+        if $WIKI_AUTO_COMMIT_MASSAGE; then
+            git commit -m"File $ID added."
+        else
+            git commit
+        fi
+        if $WIKI_AUTO_PUSH; then
+            git push
+        fi
+	else
+		echo "File not changed. Page is not added"
+	fi
+}
+
+delete()
+{
+	ID=`echo $1 | sed 's:.*/::' | cut -d\. -f1`
+
+	# Set file path
+	FILE="$WIKI_PATH$1.md"
+
+	if [ -f "$FILE" ]; then
+            cd $WIKI_PATH
+            git rm "$FILE"
+            if $WIKI_AUTO_COMMIT_MASSAGE; then
+                git commit -m"File $ID deleted."
+            else
+                git commit
+            fi
+            if $WIKI_AUTO_PUSH; then
+                git push
+            fi
+	else
+		echo "File $FILE not found."
+	fi
+}
+
+if [ -z "$CMD" ]; then
+	usage
+	exit 1
+fi
+
+case "$CMD" in
+	-h)
+		echo "Usage: bug [[alvpe] [del] [create]] [args]"
+		exit 1
+		;;
+	a*)
+		add $2 || exit 1
+		;;
+	l*)
+		list || exit 1
+		;;
+	ver*)
+		version || exit 1
+		;;
+	v*)
+		view $2 || exit 1
+		;;
+	p*)
+		echo Project: $BUG_PROJECT
+		;;
+	del*)
+		delete $2 || exit 1
+		;;
+	create)
+		create || exit 1
+		;;
+	e*)
+		edit $2 || exit 1
+		;;
+	*)
+		usage
+		exit 1
+		;;
+esac
+exit 0
