@@ -1,2 +1,4 @@
-1
+3
 0	HIGH	TODO	Check if wiki is properly configured	Check if needed ENV variables exists.
+1	HIGH	TODO	Add file editing history log	
+2	HIGH	TODO	Add publish command	\nAdd publish command which converts wiki into static html wiki and save it\nto given PATH
